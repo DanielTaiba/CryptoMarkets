@@ -7,7 +7,8 @@ class Markets(object):
     if refresh:
       markets = {
         'binance' : self.binance(),
-
+        'kucoin' : self.kucoin(),
+        'coinbase': self.coinbase(),
       }
 
       self.__writeResponses(markets,fileName='summaryMarkets')
@@ -67,4 +68,17 @@ class Markets(object):
 
     #filter
     symbols = [s['name'] for s in data['data']]
+    return list(set(symbols))
+  
+  def coinbase(self):
+    endpoint = 'https://api.exchange.coinbase.com/currencies'
+    header={
+      'Accepts': 'application/json',
+    }
+
+    data = self.__query(endpoint,header=header)
+    self.__writeResponses(data,fileName='coinbaseCurrencies')
+
+    #filter
+    symbols = [s['id'] for s in data if s['details']['type'] == 'crypto']
     return list(set(symbols))
