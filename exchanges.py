@@ -12,7 +12,7 @@ class Markets(object):
 
       self.__writeResponses(markets,fileName='summaryMarkets')
       
-  def __query(self, url, params = {}, header = {}):
+  def __query(self, url, params = {}, header = {}) -> dict:
     try:
       response = requests.get(url,params=params,headers=header)
 
@@ -25,7 +25,7 @@ class Markets(object):
     except Exception as e:
       print(e)
 
-  def __writeResponses(self,data,fileName='test'):
+  def __writeResponses(self,data,fileName='test') -> None:
     
     if not os.path.isdir('./responsesJson'):
       os.mkdir('./responsesJson')
@@ -33,7 +33,7 @@ class Markets(object):
     with open(f'responsesJson/{fileName}.json','w') as f:
       json.dump(data,f,indent=2)
   
-  def binance(self,**kwargs):
+  def binance(self,**kwargs) -> list:
     endpoint = 'https://api.binance.com/api/v3/exchangeInfo'
     """
     **kwargs:
@@ -54,4 +54,17 @@ class Markets(object):
     #filter
     symbols = [s['baseAsset'] for s in data['symbols'] if s['status']!= 'BREAK']
     
+    return list(set(symbols))
+
+  def kucoin(self) -> list:
+    endpoint = 'https://openapi-sandbox.kucoin.com/api/v1/currencies'
+    header={
+      'Accepts': 'application/json',
+    }
+
+    data = self.__query(endpoint,header=header)
+    self.__writeResponses(data,fileName='kucoinCurrencies')
+
+    #filter
+    symbols = [s['name'] for s in data['data']]
     return list(set(symbols))
