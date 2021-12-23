@@ -9,6 +9,7 @@ class Markets(object):
         'binance' : self.binance(),
         'kucoin' : self.kucoin(),
         'coinbase': self.coinbase(),
+        'huobi':self.huobi(),
       }
 
       self.__writeResponses(markets,fileName='summaryMarkets')
@@ -50,7 +51,7 @@ class Markets(object):
     }
 
     data = self.__query(endpoint,params=parameters,header=header)
-    self.__writeResponses(data,fileName='binanceMarketStats')
+    self.__writeResponses(data,fileName='binanceCurrencies')
 
     #filter
     symbols = [s['baseAsset'] for s in data['symbols'] if s['status']!= 'BREAK']
@@ -81,4 +82,17 @@ class Markets(object):
 
     #filter
     symbols = [s['id'] for s in data if s['details']['type'] == 'crypto']
+    return list(set(symbols))
+
+  def huobi(self):
+    endpoint = 'https://api.huobi.pro/v1/common/symbols'
+    header={
+      'Accepts': 'application/json',
+    }
+
+    data = self.__query(endpoint,header=header)
+    self.__writeResponses(data,fileName='huobiCurrencies')
+
+    #filter
+    symbols = [s['base-currency'] for s in data['data'] if s['state'] == 'online']
     return list(set(symbols))

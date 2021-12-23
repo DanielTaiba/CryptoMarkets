@@ -1,4 +1,5 @@
 from exchanges import Markets
 
 if __name__ == '__main__':
-  print(Markets().coinbase())
+  Markets(refresh=True)
+  #print(Markets().huobi())
