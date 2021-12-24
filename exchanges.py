@@ -94,5 +94,29 @@ class Markets(object):
     self.__writeResponses(data,fileName='huobiCurrencies')
 
     #filter
-    symbols = [s['base-currency'] for s in data['data'] if s['state'] == 'online']
+    symbols = [s['base-currency'].upper() for s in data['data'] if s['state'] == 'online']
     return list(set(symbols))
+
+class coinGecko(object):
+  def __init__(self) -> None:
+    self.url = 'https://api.coingecko.com/api/v3/'
+
+  def coinList(self):
+    endpoint ='coins/list'
+    p={
+      'include_platform':True,
+    }
+    head={
+      'Accepts': 'application/json',
+    }
+    try:
+      r =requests.get(self.url+endpoint,params=p,headers=head)
+
+      print(r.status_code,r.url)
+      if not os.path.isdir('./responsesJson'):
+        os.mkdir('./responsesJson')
+
+      with open(f'responsesJson/coinList.json','w') as f:
+        json.dump(r.json(),f,indent=2)
+    except Exception as e :
+      print(e)
