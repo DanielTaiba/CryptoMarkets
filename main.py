@@ -1,7 +1,7 @@
-from exchanges import Markets, coinGecko
-from data import stats
+from markets import exchanges, coinGecko
+from data import coins
 if __name__ == '__main__':
-  #Markets(refresh=True)
-  #print(Markets().huobi())
+  #exchanges(refresh=True)
+  #print(exchanges().huobi())
   #coinGecko().coinList()
-  print(stats().uniteCoins(others=['kucoin','huobi','coinbase']))
+  print(coins().uniteCoins(others=['kucoin','huobi','coinbase']))

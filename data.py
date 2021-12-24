@@ -1,10 +1,10 @@
 import json
-from exchanges import Markets
+from markets import exchanges
 from itertools import combinations
 
-class stats():
-  def __init__(self) -> None:
-    self.currencies = Markets(refresh=False)
+class coins():
+  def __init__(self,refresh=False) -> None:
+    self.currencies = exchanges(refresh=refresh)
     self.infoPath = 'responsesJson/summaryMarkets.json'
     self.coinsByExchange = self.__loadFile(self.infoPath)
 

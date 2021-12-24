@@ -2,7 +2,7 @@ import requests
 import json
 import os
 
-class Markets(object):
+class exchanges(object):
   def __init__(self,refresh = False) -> None:
     if refresh:
       markets = {
