@@ -3,6 +3,11 @@ from data import coins
 if __name__ == '__main__':
   #exchanges(refresh=True)
   #print(exchanges().huobi())
-  args = ('btc','eth','ada')
-  coinGecko().extractInfo()
+  """
+  coin =coins(refresh=True)
+  coin.uniteCoins()
+  coin.separateCoins()
+  """
+  
+  coinGecko().createDataFrame()
   #print(coins().uniteCoins(others=['kucoin','huobi','coinbase']))

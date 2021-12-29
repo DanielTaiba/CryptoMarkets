@@ -1,16 +1,12 @@
-import json
 from markets import exchanges
 from itertools import combinations
+from utils import loadFile,writeResponses
 
 class coins():
   def __init__(self,refresh=False) -> None:
     self.currencies = exchanges(refresh=refresh)
     self.infoPath = 'responsesJson/summaryMarkets.json'
-    self.coinsByExchange = self.__loadFile(self.infoPath)
-
-  def __loadFile(self,path)-> dict:
-    with open(path,'r') as f:
-      return json.load(f)
+    self.coinsByExchange = loadFile(self.infoPath)
 
   def __comb(self,lista ) -> list:
     combinaciones=list()
@@ -28,16 +24,19 @@ class coins():
   def __intersection(self,key,*argv)->set:
     return set(self.coinsByExchange[key]).intersection(self.__conjunction(*argv))
 
-  def separateCoins(self, exchange ='binance', others = ['kucoin'])-> dict:
+  def separateCoins(self, exchange ='binance', others = ['kucoin','coinbase','huobi'])-> dict:
     result = dict()    
     for comb in self.__comb(others):
       name='+'.join(comb)
-      result[exchange+'-('+name+')']=set(self.coinsByExchange[exchange]) - self.__intersection(exchange,*comb)
-    return result
+      result[exchange+'-('+name+')']=list(set(self.coinsByExchange[exchange]) - self.__intersection(exchange,*comb))
     
-  def uniteCoins(self, exchange ='binance', others = ['kucoin'])-> dict:
+    writeResponses(result,fileName='separateCoins')
+    #return result
+    
+  def uniteCoins(self, exchange ='binance', others = ['kucoin','coinbase','huobi'])-> dict:
     result = dict()    
     for comb in self.__comb(others):
       name='+'.join(comb)
-      result[exchange+'+'+name]= self.__intersection(exchange,*comb)
-    return result
+      result[exchange+'+'+name]= list(set(self.__intersection(exchange,*comb)))
+    writeResponses(result,fileName='uniteCoins')
+    #return result

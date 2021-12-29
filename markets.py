@@ -1,6 +1,7 @@
 import requests
 from utils import writeResponses,loadFile
 import pandas as pd
+import time
 
 class exchanges(object):
   def __init__(self,refresh = False) -> None:
@@ -12,7 +13,7 @@ class exchanges(object):
         'huobi':self.huobi(),
       }
 
-      self.__writeResponses(markets,fileName='summaryMarkets')
+      writeResponses(markets,fileName='summaryMarkets')
       
   def __query(self, url, params = {}, header = {}) -> dict:
     try:
@@ -92,12 +93,17 @@ class exchanges(object):
 class coinGecko(object):
   def __init__(self) -> None:
     self.url = 'https://api.coingecko.com/api/v3/'
+    self.allSeparateSymbol = loadFile('responsesJson/separateCoins.json')
+    self.allUniteSymbol = loadFile('responsesJson/uniteCoins.json')
+    self.rateLimit = 1.2
 
   def __query(self,endpoint,parameters={}):
+
     head={
       'Accepts': 'application/json',
     }
     try:
+      time.sleep(self.rateLimit)
       r =requests.get(self.url+endpoint,params=parameters,headers=head)
 
       if r.status_code==200:
@@ -123,37 +129,68 @@ class coinGecko(object):
     df = pd.read_csv('responsesJson/coinList.csv')
     
     for arg in args:
-      arg.lower()
-      data=df[df['symbol']==arg]
-      yield data['id'].values
-      #self.coinInformation(ids=data['id'].values[-1])
-      
-
-  def coinInformation(self,ids='bitcoin',**kwargs):
-    endpoint=f'coins/{ids}'
-    p={
-      **kwargs
-    }
-    return self.__query(endpoint,parameters=p)
-    
+      data=df[(df['symbol']==arg) | (df['symbol']==arg.lower())]
+      #print(arg, data['id'].values) 
+      yield data['id'].values  
   
-  def extractInfo(self):
-    symbols = ('btc','eth','ada')
+  def createDataFrame(self):
+    for key,value in self.allUniteSymbol.items():
+      if key == 'binance+kucoin+coinbase+huobi':
+        pd.DataFrame(data=self.extractInfo(*value)).to_csv('responsesJson/infoCoins.csv')
+  
     
+  def extractInfo(self,*symbols):
+    
+    info_coins=list()
     for ids in self.symbolsToIds(*symbols):
-      if len(ids)>1:
+      if len(ids)==0:
+        continue
+      elif len(ids)>1:
         high_mcap=10000000
         selectID=None
         for i in ids:
           data=self.__query(f'coins/{i}')
-          mcap=int(data['market_cap_rank'] or 10000001)
-          if mcap<high_mcap:
-            selectID=i
+          if data:
+            mcap=int(data['market_cap_rank'] or 10000001)
+            if mcap<high_mcap:
+              selectID=i
   
       else:
         selectID=ids[0]
+      print (f'add {selectID} ...')
+      data=self.__query(f'coins/{selectID}')
+      if data:
+        info_coins.append(self.parseInfo(data=data))
       
-      writeResponses(data=self.__query(f'coins/{selectID}'),fileName=f'CG_{selectID}')
+    return info_coins
 
+  def parseInfo(self,data={}):
+    category = data['categories']
+    if len(category)>=1:
+      category=category[0]
+    else: 
+      category = None
 
+    coin = {
+      'id':str(data['id'] or None),
+      'symbol':str(data['symbol'] or None),
+      'name':str(data['name'] or None),
+      'category':str(category or None),
+      'genesis_date':str(data['genesis_date'] or None),
+      'sentiment_votes_up_percentage':data['sentiment_votes_up_percentage'],
+      'sentiment_votes_down_percentage':data['sentiment_votes_down_percentage'],
+      'market_cap_rank':data['market_cap_rank'],
+      'coingecko_score':data['coingecko_score'] ,
+      'developer_score':data['developer_score'] ,
+      'community_score':data['community_score'] ,
+      'liquidity_score':data['liquidity_score'] ,
+      'public_interest_score':data['public_interest_score'] ,
+      'market_cap':data['market_data']['market_cap']['usd'],
+      'total_volume':data['market_data']['total_volume']['usd'],
+      'total_supply':data['market_data']['total_supply'],
+      'max_supply':data['market_data']['max_supply'],
+      'circulating_supply':data['market_data']['circulating_supply']
+    }
+
+    return coin
 

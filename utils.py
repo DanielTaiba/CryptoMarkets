@@ -1,5 +1,6 @@
 import os
 import json
+
 def writeResponses(data,fileName='test') -> None:
     if not os.path.isdir('./responsesJson'):
       os.mkdir('./responsesJson')
